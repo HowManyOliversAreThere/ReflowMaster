@@ -1,3 +1,13 @@
+# Purpose of this fork
+
+The ReflowMaster is designed to work by splicing an SSR in line with the mains power of a toaster oven. I have no intention of playing with mains power, however I want to use a toaster oven to reflow things, and as such I've had to search for a workaround. The intention of this fork is to enable a system where the ReflowMaster can control a Wi-Fi controllable relay (such as the [Sonoff S20 Smart Socket](https://www.itead.cc/smart-socket.html)).
+
+Unfortunately the ReflowMaster hardware has no built-in Wi-Fi capabilities itself. As such, my intention is to instead utilise the relay control output signal, and feed this into another microcontroller that *does* have Wi-Fi on board. It could then in turn notify the Smart Switch when to enable / disable power.
+
+Obviously Wi-Fi has speed and delay limitations that will affect the ability to PWM the relay, and as such I'll need to greatly reduce the PWM period in order to make this work. This should be okay given the thermal mass of the system, I've used 5 second PWM periods on heavy thermal systems before with success, and as such will be targeting this initially, and tweaking as necessary.
+
+---
+
 # ReflowMaster
 
 Reflow Master is my open source toaster oven reflow controller that I also sell full assembled on tindie:
