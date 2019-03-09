@@ -1,0 +1,2 @@
+# Do not add secret configuration file to repo
+SECRET.py
