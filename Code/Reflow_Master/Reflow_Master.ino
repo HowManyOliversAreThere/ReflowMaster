@@ -29,8 +29,9 @@ HISTORY:
  * NOTE: This is a work in progress...
  */
 
+#include "Arduino.h"
 #include <SPI.h>
-#include <spline.h> // http://github.com/kerinin/arduino-splines
+#include "spline.h" // http://github.com/kerinin/arduino-splines
 #include "Adafruit_GFX.h" // Library Manager
 #include "Adafruit_ILI9341.h" // Library Manager
 #include "MAX31855.h" // by Rob Tillaart Library Manager
@@ -88,6 +89,9 @@ HISTORY:
 #define DKPINK    0x9009
 #define DKPURPLE  0x4010
 #define DKGREY    0x4A49
+
+// Length of relay PWM cycle, in millis
+#define PWM_PERIOD 5000
 
 // Save data struct
 typedef struct {
@@ -570,14 +574,38 @@ void loop()
   }
 }
 
-// This is where the SSR is controlled via PWM
+// This is where the relay is controlled via manual PWM
 void SetRelayFrequency( int duty )
 {
+  // First use of function so want to set immediately
+  static long lastOn = millis() - PWM_PERIOD - 1;
+  static long nextOff = 0;
+
   // calculate the wanted duty based on settings power override
   currentDuty = ((float)duty * set.power );
 
-  // Write the clamped duty cycle to the RELAY GPIO
-  analogWrite( RELAY, constrain( round( currentDuty ), 0, 255) );
+  // Calculate the next time to turn off the relay
+  nextOff = round(currentDuty / 255 * PWM_PERIOD);
+  nextOff = (long)constrain(nextOff, 0, PWM_PERIOD);
+
+  long now = millis();
+  if (now >= lastOn + PWM_PERIOD) {
+    // Start of new PWM period
+    lastOn = now;
+    if (nextOff == 0) {
+      // Period set to 0 - don't turn relay on at all
+      digitalWrite(RELAY, LOW);
+    } else {
+      // On part of period
+      digitalWrite(RELAY, HIGH);
+    }
+  } else {
+    // Still in a previous PWM period
+    if (now >= lastOn + nextOff) {
+      // Off part of period
+      digitalWrite(RELAY, LOW);
+    }
+  }
 
 #ifdef DEBUG
   Serial.print("RELAY Duty Cycle: ");
@@ -1792,6 +1820,3 @@ void println_Right( Adafruit_ILI9341 &d, String heading, int centerX, int center
     d.setCursor( centerX + ( 18 - ww ), centerY - hh / 2);
     d.println( heading );
 }
-
-
-
