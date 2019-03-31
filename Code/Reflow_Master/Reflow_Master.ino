@@ -587,6 +587,11 @@ void SetRelayFrequency( int duty )
   // Calculate the next time to turn off the relay
   nextOff = round(currentDuty / 255 * PWM_PERIOD);
   nextOff = (long)constrain(nextOff, 0, PWM_PERIOD);
+  if (nextOff < 0.05 * PWM_PERIOD) {
+    nextOff = 0;
+  } else if (nextOff > 0.95 * PWM_PERIOD) {
+    nextOff = PWM_PERIOD;
+  }
 
   long now = millis();
   if (now >= lastOn + PWM_PERIOD) {
